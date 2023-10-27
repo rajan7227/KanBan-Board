@@ -3,14 +3,17 @@ import { Column } from "../types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
+import { AddTask } from "../icons/AddTask";
 
 interface props {
   column: Column;
   deleteColumn: (id: Id) => void;
+  createTask: (columnId: string) => void;
+  tasks: Task[];
 }
 
 export const ColumnContainer = (props: props) => {
-  const { column, deleteColumn, updateColumn } = props;
+  const { column, deleteColumn, updateColumn, createTask, tasks } = props;
   const [ editMode, setEditMode ] = useState(false)
 
     const {setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
@@ -47,7 +50,7 @@ export const ColumnContainer = (props: props) => {
         );
       }
   return (
-    <div ref={setNodeRef} style={style} className="bg-columnBackgroundColor w-[350px] h-[500px] max-h-[500px] rounded-md flex flex-col">
+    <div ref={setNodeRef} style={style} className="bg-columnBackgroundColor w-[350px] h-[500px] max-h-[500px] rounded-md flex  justify-between flex-col">
       <div {...attributes} {...listeners} onClick={()=> setEditMode(true)} className="flex items-center justify-between bg-mainBackgroundColor text-md h-[60px] cursor-grab rounded-md rounded-b-none p-3 font-bold border-columnBackgroundColor border-4 ">
         <div className="flex gap-2">
           <div className="flex justify-center items-center bg-columnBackgroundColor px-2 py-1 text-sm rounded-full">
@@ -65,6 +68,8 @@ export const ColumnContainer = (props: props) => {
         </div>
         <button onClick={()=>{deleteColumn(column.id)}} className="flex justify-center items-center gap-2"> <TrashIcon /></button>
       </div>
+      <div className="flex flex-grow flex-col gap-2 p-2 overflow-x-hidden oveflow-y-auto">{tasks.map((task)=>(<div key={task.id}>{task.content}</div>))}</div>
+      <button className="  flex justify-center gap-2 py-3 items-center " onClick={()=> createTask(column.id)}> <AddTask /> Add Task</button>
     </div>
   );
 };

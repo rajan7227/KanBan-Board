@@ -35,6 +35,7 @@ import { createPortal } from "react-dom";
 function KanBanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns])
+  const [tasks, setTasks] = useState<Task> ([]);
 
   const [activeColumn, setActiveColumn] = useState<Column | null>(null)
 
@@ -58,6 +59,8 @@ function KanBanBoard() {
                 column={col}
                 deleteColumn={() => deleteColumn(col.id)}
                 updateColumn={updateColumn} 
+                createTask={createTask}
+                tasks={tasks.filter((task)=> task.columnId === col.id)}
               />
             ))}
             </SortableContext>
@@ -142,6 +145,15 @@ function KanBanBoard() {
      return col;
     });
     setColumns(updatedColumns);
+  }
+
+  function createTask(columnId: Id) {
+    const newTask: Task = {
+      id: generateId(),
+      columnId,
+      content: `Task ${tasks?.length + 1}`
+    }
+    setTasks([...tasks, newTask]);
   }
 }
 
