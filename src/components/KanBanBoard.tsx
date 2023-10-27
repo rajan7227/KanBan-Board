@@ -1,25 +1,35 @@
 import { PlusIcon } from "../icons/Plusicon";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Column, Id, Task } from "../types";
 import { ColumnContainer } from "./ColumnContainer";
+import { DndContext, DragStartEvent } from "@dnd-kit/core";
+import { SortableContext } from "@dnd-kit/sortable";
 
 function KanBanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
-  console.log(columns);
+  const columnsId = useMemo(() => columns.map((col) => col.id), [columns])
+
   return (
     <div className="m-auto flex min-h-screen w-full items-center  overflow-x-auto overflow-y-hidden px-[40px]">
-      <div className="m-auto flex gap-4">
-        <div className="flex  gap-4 ">
-          {columns.map((col) => (
-            <ColumnContainer  key={col.id} column={col} deleteColumn={() => deleteColumn(col.id)} />
-          ))}
-        </div>
+      <DndContext onDragStart={onDragStart}>
+        <div className="m-auto flex gap-4">
+          <div className="flex  gap-4 ">
+            <SortableContext items={columnsId}>
+            {columns.map((col) => (
+              <ColumnContainer
+                key={col.id}
+                column={col}
+                deleteColumn={() => deleteColumn(col.id)}
+              />
+            ))}
+            </SortableContext>
+          </div>
 
-        <button
-          onClick={() => {
-            createColumn();
-          }}
-          className="
+          <button
+            onClick={() => {
+              createColumn();
+            }}
+            className="
       h-[60px]
       w-[350px]
       min-w-[350px]
@@ -34,10 +44,11 @@ function KanBanBoard() {
       flex
       gap-2
       "
-        >
-          <PlusIcon /> Add Column
-        </button>
-      </div>
+          >
+            <PlusIcon /> Add Column
+          </button>
+        </div>
+      </DndContext>
     </div>
   );
 
@@ -53,9 +64,13 @@ function KanBanBoard() {
     return Math.floor(Math.random() * 10000);
   }
 
-  function deleteColumn(id){
+  function deleteColumn(id) {
     const filteredColumns = columns.filter((col) => col.id !== id);
-    setColumns(filteredColumns)
+    setColumns(filteredColumns);
+  }
+
+  function onDragStart (event: DragStartEvent ){
+    console.log("DRAG START", event);
   }
 }
 
