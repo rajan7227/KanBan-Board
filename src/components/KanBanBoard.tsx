@@ -6,6 +6,32 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, u
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
 
+/**
+ * KanBanBoard component renders the Kanban board.
+ * It manages the state of the columns and handles drag and drop interactions to reorder columns.
+ *
+ * Key responsibilities:
+ * - Renders ColumnContainer for each column
+ * - Allows adding new columns
+ * - Deletes columns
+ * - Implements drag and drop handling with DND kit
+ * - Handles reordering columns on drag end
+ */
+/**
+ * KanBanBoard component renders the Kanban board.
+ *
+ * It manages the state of the columns and handles drag and drop sorting of the columns.
+ *
+ * Some key things it does:
+ *
+ * - Uses useState hook to store columns array and active column state.
+ * - Uses useMemo to optimize column ids array.
+ * - Renders columns with SortableContext for drag and drop.
+ * - Handles drag start/end to update column order.
+ * - Allows adding new columns.
+ * - Allows deleting columns.
+ * - Shows overlay of dragged column.
+ */
 function KanBanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns])
@@ -31,6 +57,7 @@ function KanBanBoard() {
                 key={col.id}
                 column={col}
                 deleteColumn={() => deleteColumn(col.id)}
+                updateColumn={updateColumn} 
               />
             ))}
             </SortableContext>
@@ -104,6 +131,16 @@ function KanBanBoard() {
 
     const updatedColumns = arrayMove(columns, activeColumnIndex, overColumnIndex);
 
+    setColumns(updatedColumns);
+  }
+
+  function updateColumn(id:Id , title: string) {
+    const updatedColumns = columns.map((col) => {
+     if (col.id === id){
+      return { ...col, title};
+     }
+     return col;
+    });
     setColumns(updatedColumns);
   }
 }
