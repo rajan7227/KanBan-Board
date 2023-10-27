@@ -11,7 +11,7 @@ interface props {
 export const ColumnContainer = (props: props) => {
   const { column, deleteColumn } = props;
 
-    const {setNodeRef, attributes, listeners, transform, transition } = useSortable({
+    const {setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
         id: column.id,
         data: {
             type: "Column",
@@ -24,6 +24,26 @@ export const ColumnContainer = (props: props) => {
         transform: CSS.Transform.toString(transform),
     };
 
+    if (isDragging) {
+        return (
+          <div
+            ref={setNodeRef}
+            style={style}
+            className="
+          bg-columnBackgroundColor
+          opacity-40
+          border-2
+          border-pink-500
+          w-[350px]
+          h-[500px]
+          max-h-[500px]
+          rounded-md
+          flex
+          flex-col
+          "
+          ></div>
+        );
+      }
   return (
     <div ref={setNodeRef} style={style} className="bg-columnBackgroundColor w-[350px] h-[500px] max-h-[500px] rounded-md flex flex-col">
       <div {...attributes} {...listeners} className="flex items-center justify-between bg-mainBackgroundColor text-md h-[60px] cursor-grab rounded-md rounded-b-none p-3 font-bold border-columnBackgroundColor border-4 ">
