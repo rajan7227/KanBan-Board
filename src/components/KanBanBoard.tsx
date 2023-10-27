@@ -2,7 +2,7 @@ import { PlusIcon } from "../icons/Plusicon";
 import { useState, useMemo } from "react";
 import { Column, Id, Task } from "../types";
 import { ColumnContainer } from "./ColumnContainer";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
 
@@ -12,9 +12,17 @@ function KanBanBoard() {
 
   const [activeColumn, setActiveColumn] = useState<Column | null>(null)
 
+   const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance:3,
+      },
+    })
+   );
+
   return (
     <div className="m-auto flex min-h-screen w-full items-center  overflow-x-auto overflow-y-hidden px-[40px]">
-      <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="m-auto flex gap-4">
           <div className="flex  gap-4 ">
             <SortableContext items={columnsId}>
