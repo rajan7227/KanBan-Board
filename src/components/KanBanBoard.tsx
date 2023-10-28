@@ -60,6 +60,8 @@ function KanBanBoard() {
                 deleteColumn={() => deleteColumn(col.id)}
                 updateColumn={updateColumn} 
                 createTask={createTask}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
                 tasks={tasks.filter((task)=> task.columnId === col.id)}
               />
             ))}
@@ -90,7 +92,8 @@ function KanBanBoard() {
           </button>
         </div>
         { createPortal(<DragOverlay>
-          {activeColumn && (<ColumnContainer column={activeColumn} deleteColumn={deleteColumn} />)}
+          {activeColumn && (<ColumnContainer deleteTask={deleteTask} column={activeColumn} deleteColumn={deleteColumn} deleteTask={deleteTask}
+                updateTask={updateTask} tasks={tasks.filter((task)=> task.columnId === activeColumn.id)}/>)}
         </DragOverlay>, document.body )}
       </DndContext>
     </div>
@@ -154,6 +157,20 @@ function KanBanBoard() {
       content: `Task ${tasks?.length + 1}`
     }
     setTasks([...tasks, newTask]);
+  }
+
+  function deleteTask(id:Id){
+    const filteredTasks = tasks.map((task)=> task.id !== id);
+    setTasks(filteredTasks);
+  }
+
+  function updateTask( id:Id , content: string){
+    const newTasks = tasks.map((task)=> {
+      if(task.id !==id) return task;
+      return {...task, content}
+    });
+
+    setTasks(newTasks);
   }
 }
 
