@@ -16,11 +16,109 @@ import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
 import { TaskCard } from "./TaskCard";
 
+const defaultCols: Column[] = [
+  {
+    id: "todo",
+    title: "Todo \u{1F4C5}",
+  },
+  {
+    id: "doing",
+    title: "Work in progress \u{1F680}",
+  },
+  {
+    id: "done",
+    title: "Done \u{2705}",
+  },
+  {
+    id: "review",
+    title: "Review \u{1F4DD}",
+  }
+];
+
+const defaultTasks: Task[] = [
+  {
+    id: "1",
+    columnId: "todo",
+    content: "List admin APIs for dashboard",
+  },
+  {
+    id: "2",
+    columnId: "todo",
+    content: "Develop user registration functionality with OTP delivered on SMS after email confirmation and phone number confirmation",
+  },
+  {
+    id: "3",
+    columnId: "doing",
+    content: "Conduct security testing",
+  },
+  {
+    id: "4",
+    columnId: "todo",
+    content: "Create a design mockup for the user dashboard",
+  },
+  {
+    id: "5",
+    columnId: "doing",
+    content: "Implement user authentication using JWT",
+  },
+  {
+    id: "6",
+    columnId: "done",
+    content: "Write documentation for API endpoints",
+  },
+  {
+    id: "7",
+    columnId: "todo",
+    content: "Define data models for user profiles",
+  },
+  {
+    id: "8",
+    columnId: "doing",
+    content: "Set up a continuous integration pipeline",
+  },
+  {
+    id: "9",
+    columnId: "todo",
+    content: "Create a database schema for user data",
+  },
+  {
+    id: "10",
+    columnId: "doing",
+    content: "Implement password reset functionality",
+  },
+  {
+    id: "11",
+    columnId: "done",
+    content: "Optimize database queries for performance",
+  },
+  {
+    id: "12",
+    columnId: "todo",
+    content: "Develop a user profile page UI",
+  },
+  {
+    id: "13",
+    columnId: "doing",
+    content: "Integrate third-party authentication providers",
+  },
+  {
+    id: "14",
+    columnId: "done",
+    content: "Refactor code for improved maintainability",
+  },
+  {
+    id: "15",
+    columnId: "todo",
+    content: "Create unit tests for user registration",
+  },
+  
+];
+
 
 function KanBanBoard() {
-  const [columns, setColumns] = useState<Column[]>([]);
+  const [columns, setColumns] = useState<Column[]>(defaultCols);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-  const [tasks, setTasks] = useState<Task>([]);
+  const [tasks, setTasks] = useState<Task>(defaultTasks);
 
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
