@@ -1,5 +1,5 @@
 import { PlusIcon } from "../icons/Plusicon";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Column, Id, Task } from "../types";
 import { ColumnContainer } from "./ColumnContainer";
 import {
@@ -116,12 +116,20 @@ const defaultTasks: Task[] = [
 
 
 function KanBanBoard() {
-  const [columns, setColumns] = useState<Column[]>(defaultCols);
+  const localStorageKey = "KanBanBoard-State";
+  const savedData = JSON.parse(localStorage.getItem(localStorageKey)) || { columns: defaultCols, tasks: defaultTasks };
+  const initialColumns = savedData.columns;
+  const initialTasks = savedData.tasks;
+  const [columns, setColumns] = useState<Column[]>(initialColumns);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-  const [tasks, setTasks] = useState<Task>(defaultTasks);
-
+  const [tasks, setTasks] = useState<Task>(initialTasks);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+//Saving the Column and Task in the local storage
+  useEffect(()=>{
+    localStorage.setItem(localStorageKey, JSON.stringify({ columns, tasks }));
+  },[columns,tasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
