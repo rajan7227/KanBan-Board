@@ -2,69 +2,60 @@ import { PlusIcon } from "../icons/Plusicon";
 import { useState, useMemo } from "react";
 import { Column, Id, Task } from "../types";
 import { ColumnContainer } from "./ColumnContainer";
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
+import { TaskCard } from "./TaskCard";
 
-/**
- * KanBanBoard component renders the Kanban board.
- * It manages the state of the columns and handles drag and drop interactions to reorder columns.
- *
- * Key responsibilities:
- * - Renders ColumnContainer for each column
- * - Allows adding new columns
- * - Deletes columns
- * - Implements drag and drop handling with DND kit
- * - Handles reordering columns on drag end
- */
-/**
- * KanBanBoard component renders the Kanban board.
- *
- * It manages the state of the columns and handles drag and drop sorting of the columns.
- *
- * Some key things it does:
- *
- * - Uses useState hook to store columns array and active column state.
- * - Uses useMemo to optimize column ids array.
- * - Renders columns with SortableContext for drag and drop.
- * - Handles drag start/end to update column order.
- * - Allows adding new columns.
- * - Allows deleting columns.
- * - Shows overlay of dragged column.
- */
+
 function KanBanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
-  const columnsId = useMemo(() => columns.map((col) => col.id), [columns])
-  const [tasks, setTasks] = useState<Task> ([]);
+  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
+  const [tasks, setTasks] = useState<Task>([]);
 
-  const [activeColumn, setActiveColumn] = useState<Column | null>(null)
+  const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-   const sensors = useSensors(
+  const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance:3,
+        distance: 3,
       },
     })
-   );
+  );
 
   return (
     <div className="m-auto flex min-h-screen w-full items-center  overflow-x-auto overflow-y-hidden px-[40px]">
-      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <DndContext
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragOver={onDragOver}
+      >
         <div className="m-auto flex gap-4">
           <div className="flex  gap-4 ">
             <SortableContext items={columnsId}>
-            {columns.map((col) => (
-              <ColumnContainer
-                key={col.id}
-                column={col}
-                deleteColumn={() => deleteColumn(col.id)}
-                updateColumn={updateColumn} 
-                createTask={createTask}
-                deleteTask={deleteTask}
-                updateTask={updateTask}
-                tasks={tasks.filter((task)=> task.columnId === col.id)}
-              />
-            ))}
+              {columns.map((col) => (
+                <ColumnContainer
+                  key={col.id}
+                  column={col}
+                  deleteColumn={() => deleteColumn(col.id)}
+                  updateColumn={updateColumn}
+                  createTask={createTask}
+                  deleteTask={deleteTask}
+                  updateTask={updateTask}
+                  tasks={tasks.filter((task) => task.columnId === col.id)}
+                />
+              ))}
             </SortableContext>
           </div>
 
@@ -91,10 +82,30 @@ function KanBanBoard() {
             <PlusIcon /> Add Column
           </button>
         </div>
-        { createPortal(<DragOverlay>
-          {activeColumn && (<ColumnContainer deleteTask={deleteTask} column={activeColumn} deleteColumn={deleteColumn} deleteTask={deleteTask}
-                updateTask={updateTask} tasks={tasks.filter((task)=> task.columnId === activeColumn.id)}/>)}
-        </DragOverlay>, document.body )}
+        {createPortal(
+          <DragOverlay>
+            {activeColumn && (
+              <ColumnContainer
+                deleteTask={deleteTask}
+                column={activeColumn}
+                deleteColumn={deleteColumn}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+                tasks={tasks.filter(
+                  (task) => task.columnId === activeColumn.id
+                )}
+              />
+            )}
+            {activeTask && (
+              <TaskCard
+                task={activeTask}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+              />
+            )}
+          </DragOverlay>,
+          document.body
+        )}
       </DndContext>
     </div>
   );
@@ -116,36 +127,89 @@ function KanBanBoard() {
     setColumns(filteredColumns);
   }
 
-  function onDragStart (event: DragStartEvent ){
+  function onDragStart(event: DragStartEvent) {
     console.log("DRAG START", event);
-    if(event.active.data.current?.type === "Column") {
+    if (event.active.data.current?.type === "Column") {
       setActiveColumn(event.active.data.current.column);
+      return;
+    }
+
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
       return;
     }
   }
 
-  function onDragEnd (event: DragEndEvent) {
+  function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over) return;
-    const activeColumnId = active.id;
-    const overColumnId = over.id;
+    const activeId = active.id;
+    const overId = over.id;
 
-    if( activeColumnId === overColumnId) return;
-   
-    const activeColumnIndex = columns.findIndex((col) => col.id === activeColumnId);
-    const overColumnIndex = columns.findIndex((col)=> col.id === overColumnId);
+    if (activeId === overId) return;
 
-    const updatedColumns = arrayMove(columns, activeColumnIndex, overColumnIndex);
+    const activeColumnIndex = columns.findIndex((col) => col.id === activeId);
+    const overColumnIndex = columns.findIndex((col) => col.id === overId);
+
+    const updatedColumns = arrayMove(
+      columns,
+      activeColumnIndex,
+      overColumnIndex
+    );
 
     setColumns(updatedColumns);
   }
 
-  function updateColumn(id:Id , title: string) {
+  function onDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveATask = active.data.current?.type === "Task";
+    const isOverATask = over.data.current?.type === "Task";
+
+    if (!isActiveATask) return;
+
+    // Im dropping a Task over another Task
+    if (isActiveATask && isOverATask) {
+      setTasks((tasks) => {
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
+        const overIndex = tasks.findIndex((t) => t.id === overId);
+
+        if (tasks[activeIndex].columnId != tasks[overIndex].columnId) {
+          // Fix introduced after video recording
+          tasks[activeIndex].columnId = tasks[overIndex].columnId;
+          return arrayMove(tasks, activeIndex, overIndex - 1);
+        }
+
+        return arrayMove(tasks, activeIndex, overIndex);
+      });
+    }
+
+    const isOverAColumn = over.data.current?.type === "Column";
+
+    // Im dropping a Task over a column
+    if (isActiveATask && isOverAColumn) {
+      setTasks((tasks) => {
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
+
+        tasks[activeIndex].columnId = overId;
+        console.log("DROPPING TASK OVER COLUMN", { activeIndex });
+        return arrayMove(tasks, activeIndex, activeIndex);
+      });
+    }
+  }
+
+  function updateColumn(id: Id, title: string) {
     const updatedColumns = columns.map((col) => {
-     if (col.id === id){
-      return { ...col, title};
-     }
-     return col;
+      if (col.id === id) {
+        return { ...col, title };
+      }
+      return col;
     });
     setColumns(updatedColumns);
   }
@@ -154,20 +218,20 @@ function KanBanBoard() {
     const newTask: Task = {
       id: generateId(),
       columnId,
-      content: `Task ${tasks?.length + 1}`
-    }
+      content: `Task ${tasks?.length + 1}`,
+    };
     setTasks([...tasks, newTask]);
   }
 
-  function deleteTask(id:Id){
-    const filteredTasks = tasks.map((task)=> task.id !== id);
+  function deleteTask(id: Id) {
+    const filteredTasks = tasks.map((task) => task.id !== id);
     setTasks(filteredTasks);
   }
 
-  function updateTask( id:Id , content: string){
-    const newTasks = tasks.map((task)=> {
-      if(task.id !==id) return task;
-      return {...task, content}
+  function updateTask(id: Id, content: string) {
+    const newTasks = tasks.map((task) => {
+      if (task.id !== id) return task;
+      return { ...task, content };
     });
 
     setTasks(newTasks);
